@@ -1,0 +1,291 @@
+{% extends 'base.html' %}
+{% block title %}Log Meal – NutriSmart{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width:750px;">
+    <div class="d-flex align-items-center gap-3 mb-4">
+        <a href="{{ url_for('dashboard') }}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <div>
+            <h4 class="fw-bold mb-0"><i class="bi bi-plus-circle me-2 text-primary"></i>Log a Meal</h4>
+            <small class="text-muted">Search our food database or enter custom nutritional values</small>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+
+            <!-- Food search -->
+            <div class="mb-4">
+                <label class="form-label fw-semibold fs-6">
+                    <i class="bi bi-search me-1 text-primary"></i> Search Food Database
+                </label>
+                <div class="input-group input-group-lg mb-2">
+                    <input type="text" id="foodSearch" class="form-control"
+                           placeholder="Type to search (e.g. chicken, banana, oats)…" autocomplete="off">
+                    <button class="btn btn-outline-secondary" type="button" onclick="clearSearch()">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+                <div id="searchResults" class="list-group shadow-sm" style="display:none;max-height:300px;overflow-y:auto;position:relative;z-index:1050;"></div>
+            </div>
+
+            <hr class="my-3">
+            <p class="text-muted small mb-3">
+                <i class="bi bi-pencil-square me-1"></i>
+                Or enter nutritional values manually below. Fields auto-populate when you select from search.
+            </p>
+
+            <form method="POST" action="{{ url_for('log_meal') }}" id="mealForm">
+                <!-- Meal type & date -->
+                <div class="row g-3 mb-3">
+                    <div class="col-sm-6">
+                        <label class="form-label fw-medium">Meal Type <span class="text-danger">*</span></label>
+                        <select name="meal_type" class="form-select" required id="mealType">
+                            <option value="">Choose…</option>
+                            <option value="breakfast">🌅 Breakfast</option>
+                            <option value="lunch">☀️ Lunch</option>
+                            <option value="dinner">🌙 Dinner</option>
+                            <option value="snack">🍎 Snack</option>
+                        </select>
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label fw-medium">Date</label>
+                        <input type="date" name="log_date" class="form-select" value="{{ today }}">
+                    </div>
+                </div>
+
+                <!-- Food name & quantity -->
+                <div class="row g-3 mb-3">
+                    <div class="col-sm-8">
+                        <label class="form-label fw-medium">Food Name <span class="text-danger">*</span></label>
+                        <input type="text" name="food_name" id="foodName" class="form-control"
+                               placeholder="e.g. Grilled Chicken Breast" required>
+                    </div>
+                    <div class="col-sm-4">
+                        <label class="form-label fw-medium">Quantity (g)</label>
+                        <input type="number" name="quantity_g" id="quantityG" class="form-control"
+                               value="100" min="1" max="5000" step="1"
+                               data-base-cal="" data-base-prot="" data-base-carb=""
+                               data-base-fat="" data-base-sug="" data-base-fib="" data-base-sod=""
+                               oninput="scaleNutrients()">
+                    </div>
+                </div>
+
+                <!-- Nutritional values -->
+                <div class="card bg-light border-0 mb-3 p-3">
+                    <p class="fw-semibold mb-3 text-muted small text-uppercase" style="letter-spacing:.05em;">
+                        Nutritional Values per serving
+                    </p>
+                    <div class="row g-2">
+                        <div class="col-6 col-md-3">
+                            <label class="form-label small fw-medium">Calories (kcal)</label>
+                            <input type="number" name="calories" id="calories" class="form-control form-control-sm"
+                                   value="0" min="0" step="0.1">
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <label class="form-label small fw-medium">Protein (g)</label>
+                            <input type="number" name="protein_g" id="proteinG" class="form-control form-control-sm"
+                                   value="0" min="0" step="0.1">
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <label class="form-label small fw-medium">Carbs (g)</label>
+                            <input type="number" name="carbs_g" id="carbsG" class="form-control form-control-sm"
+                                   value="0" min="0" step="0.1">
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <label class="form-label small fw-medium">Fat (g)</label>
+                            <input type="number" name="fat_g" id="fatG" class="form-control form-control-sm"
+                                   value="0" min="0" step="0.1">
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <label class="form-label small fw-medium">Sugar (g)</label>
+                            <input type="number" name="sugar_g" id="sugarG" class="form-control form-control-sm"
+                                   value="0" min="0" step="0.1">
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <label class="form-label small fw-medium">Fibre (g)</label>
+                            <input type="number" name="fiber_g" id="fiberG" class="form-control form-control-sm"
+                                   value="0" min="0" step="0.1">
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <label class="form-label small fw-medium">Sodium (mg)</label>
+                            <input type="number" name="sodium_mg" id="sodiumMg" class="form-control form-control-sm"
+                                   value="0" min="0" step="0.1">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-medium">Notes (optional)</label>
+                    <textarea name="notes" class="form-control" rows="2"
+                              placeholder="e.g. home-cooked, restaurant estimate…"></textarea>
+                </div>
+
+                <div class="d-flex gap-3">
+                    <button type="submit" class="btn btn-primary fw-semibold px-5">
+                        <i class="bi bi-check-lg me-1"></i> Save Meal
+                    </button>
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+let searchTimeout = null;
+let baseNutrients = null;
+let foodsCache = [];
+
+// ── Food search ──────────────────────────────────────────────────
+document.getElementById('foodSearch').addEventListener('input', function() {
+    clearTimeout(searchTimeout);
+    const q = this.value.trim();
+    if (q.length < 2) {
+        hideResults();
+        return;
+    }
+    searchTimeout = setTimeout(function() { fetchFoods(q); }, 250);
+});
+
+async function fetchFoods(q) {
+    const res  = await fetch('/api/foods/search?q=' + encodeURIComponent(q));
+    foodsCache = await res.json();
+    renderResults(foodsCache);
+}
+
+function renderResults(foods) {
+    const container = document.getElementById('searchResults');
+    if (!foods.length) {
+        container.innerHTML = '<a class="list-group-item text-muted">No results found.</a>';
+        container.style.display = 'block';
+        return;
+    }
+
+document.getElementById('searchResults').addEventListener('click', function(e) {
+    var btn = e.target.closest('.food-result-btn');
+    if (btn) {
+        var idx = parseInt(btn.getAttribute('data-index'));
+        selectFood(foodsCache[idx]);
+    }
+});
+    container.innerHTML = foods.map(function(f, i) {
+        return '<button type="button" class="list-group-item list-group-item-action food-result-btn" data-index="' + i + '">' +
+            '<div class="d-flex justify-content-between align-items-center">' +
+            '<div><strong>' + f.name + '</strong>' +
+            '<small class="text-muted ms-2">' + (f.category || '') + '</small></div>' +
+            '<small class="text-muted">' + f.calories_per_100g + ' kcal/100g</small>' +
+            '</div></button>';
+    }).join('');
+    container.style.display = 'block';
+}
+
+function selectFood(food) {
+    document.getElementById('foodName').value = food.name;
+    const qty = parseFloat(document.getElementById('quantityG').value) || 100;
+    const ratio = qty / 100;
+
+    // Store base (per-100g) values in data attributes for scaling
+    const qEl = document.getElementById('quantityG');
+    qEl.dataset.baseCal  = food.calories_per_100g;
+    qEl.dataset.baseProt = food.protein_per_100g;
+    qEl.dataset.baseCarb = food.carbs_per_100g;
+    qEl.dataset.baseFat  = food.fat_per_100g;
+    qEl.dataset.baseSug  = food.sugar_per_100g;
+    qEl.dataset.baseFib  = food.fiber_per_100g;
+    qEl.dataset.baseSod  = food.sodium_per_100g;
+
+    setNutrientFields(ratio);
+    hideResults();
+    document.getElementById('foodSearch').value = food.name;
+
+    // Visual confirmation - flash the nutrient card green
+    const nutrientCard = document.querySelector('.card.bg-light');
+    nutrientCard.style.transition = 'background 0.3s';
+    nutrientCard.style.background = '#d1fae5';
+    setTimeout(() => { nutrientCard.style.background = ''; }, 1000);
+
+    // Show selected food banner
+    let banner = document.getElementById('selectedFoodBanner');
+    if (!banner) {
+        banner = document.createElement('div');
+        banner.id = 'selectedFoodBanner';
+        banner.className = 'alert alert-success py-2 mb-3';
+        document.getElementById('foodSearch').closest('.mb-4').appendChild(banner);
+    }
+    banner.innerHTML = '<i class="bi bi-check-circle me-2"></i><strong>' + food.name + '</strong> selected — nutritional values filled below. Adjust quantity as needed.';
+
+    // Scroll down to form
+    document.getElementById('mealForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function scaleNutrients() {
+    const qEl = document.getElementById('quantityG');
+    if (!qEl.dataset.baseCal) return;
+    const qty = parseFloat(qEl.value) || 100;
+    setNutrientFields(qty / 100);
+}
+
+function setNutrientFields(ratio) {
+    const qEl = document.getElementById('quantityG');
+    const set = (id, key) => {
+        const val = parseFloat(qEl.dataset[key] || 0) * ratio;
+        document.getElementById(id).value = Math.round(val * 10) / 10;
+    };
+    set('calories', 'baseCal');
+    set('proteinG', 'baseProt');
+    set('carbsG',   'baseCarb');
+    set('fatG',     'baseFat');
+    set('sugarG',   'baseSug');
+    set('fiberG',   'baseFib');
+    set('sodiumMg', 'baseSod');
+}
+
+function hideResults() {
+    document.getElementById('searchResults').style.display = 'none';
+}
+function clearSearch() {
+    document.getElementById('foodSearch').value = '';
+    hideResults();
+}
+
+// Hide results on outside click
+document.addEventListener('click', e => {
+    if (!e.target.closest('#foodSearch') && !e.target.closest('#searchResults')) hideResults();
+});
+
+// Auto-select meal type based on time of day
+const hour = new Date().getHours();
+const mealTypeEl = document.getElementById('mealType');
+if      (hour >= 5  && hour < 11) mealTypeEl.value = 'breakfast';
+else if (hour >= 11 && hour < 15) mealTypeEl.value = 'lunch';
+else if (hour >= 17 && hour < 21) mealTypeEl.value = 'dinner';
+else                               mealTypeEl.value = 'snack';
+
+// Check for AI-parsed meal from sessionStorage
+const parsed = sessionStorage.getItem('parsedMeal');
+if (parsed) {
+    const meal = JSON.parse(parsed);
+    document.getElementById('foodName').value = meal.name || '';
+    document.getElementById('quantityG').value = meal.quantity_g || 100;
+    document.getElementById('calories').value = meal.calories || 0;
+    document.getElementById('proteinG').value = meal.protein_g || 0;
+    document.getElementById('carbsG').value = meal.carbs_g || 0;
+    document.getElementById('fatG').value = meal.fat_g || 0;
+    document.getElementById('sugarG').value = meal.sugar_g || 0;
+    document.getElementById('fiberG').value = meal.fiber_g || 0;
+    document.getElementById('sodiumMg').value = meal.sodium_mg || 0;
+    sessionStorage.removeItem('parsedMeal');
+    
+    // Show notification
+    const alert = document.createElement('div');
+    alert.className = 'alert alert-success alert-dismissible fade show';
+    alert.innerHTML = '<i class="bi bi-magic me-2"></i>AI-parsed meal loaded! Review and adjust if needed.<button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+    document.querySelector('.card-body').insertBefore(alert, document.querySelector('.card-body').firstChild);
+}
+</script>
+{% endblock %}

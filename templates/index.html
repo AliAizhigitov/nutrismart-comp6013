@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+{% block title %}NutriSmart – Intelligent Nutrition Tracking{% endblock %}
+{% block content %}
+
+<!-- Hero -->
+<section class="ns-hero d-flex align-items-center">
+    <div class="container text-center py-5">
+        <div class="mb-4">
+            <i class="bi bi-heart-pulse-fill display-1 text-danger"></i>
+        </div>
+        <h1 class="display-4 fw-bold text-white mb-3">
+            Eat Smarter with <span class="text-warning">NutriSmart</span>
+        </h1>
+        <p class="lead text-white-75 mb-5 mx-auto" style="max-width:600px;">
+            A web-based dietary logging tool powered by machine learning, predictive analytics,
+            and an intelligent rule-based expert system. Get AI-powered meal recommendations,
+            trend forecasting, and personalized nutritional feedback every day.
+        </p>
+        <div class="d-flex gap-3 justify-content-center flex-wrap">
+            <a href="{{ url_for('register') }}" class="btn btn-warning btn-lg fw-semibold px-5">
+                <i class="bi bi-rocket-takeoff me-2"></i>Get Started Free
+            </a>
+            <a href="{{ url_for('login') }}" class="btn btn-outline-light btn-lg px-5">
+                <i class="bi bi-box-arrow-in-right me-2"></i>Log In
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Features -->
+<section class="py-6 bg-light">
+    <div class="container">
+        <h2 class="text-center fw-bold mb-5">Everything you need to eat well</h2>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm text-center p-4">
+                    <div class="ns-feature-icon mx-auto mb-3 bg-success-subtle">
+                        <i class="bi bi-journal-plus fs-2 text-success"></i>
+                    </div>
+                    <h5 class="fw-semibold">Easy Meal Logging</h5>
+                    <p class="text-muted">Search 60+ foods from our database or enter custom items. Log breakfast, lunch, dinner, and snacks with full nutritional detail.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm text-center p-4">
+                    <div class="ns-feature-icon mx-auto mb-3 bg-primary-subtle">
+                        <i class="bi bi-cpu fs-2 text-primary"></i>
+                    </div>
+                    <h5 class="fw-semibold">Intelligent Expert System</h5>
+                    <p class="text-muted">A forward-chaining rule engine analyses your intake and produces evidence-based feedback on calories, sugar, protein, fibre, sodium, and hydration.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm text-center p-4">
+                    <div class="ns-feature-icon mx-auto mb-3 bg-warning-subtle">
+                        <i class="bi bi-stars fs-2 text-warning"></i>
+                    </div>
+                    <h5 class="fw-semibold">AI Meal Recommendations</h5>
+                    <p class="text-muted">Machine learning analyzes your nutritional needs, eating patterns, and time of day to suggest optimal meals from our 60+ food database.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm text-center p-4">
+                    <div class="ns-feature-icon mx-auto mb-3 bg-info-subtle">
+                        <i class="bi bi-graph-up-arrow fs-2 text-info"></i>
+                    </div>
+                    <h5 class="fw-semibold">Predictive Analytics</h5>
+                    <p class="text-muted">Linear regression forecasts your nutrition trends for the next 7 days. Anomaly detection alerts you to unusual eating patterns using Z-score analysis.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm text-center p-4">
+                    <div class="ns-feature-icon mx-auto mb-3 bg-warning-subtle">
+                        <i class="bi bi-graph-up-arrow fs-2 text-warning"></i>
+                    </div>
+                    <h5 class="fw-semibold">Progress Insights</h5>
+                    <p class="text-muted">Interactive weekly charts, 30-day history, goal tracking, and AI-powered anomaly detection help you understand your dietary patterns over time.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm text-center p-4">
+                    <div class="ns-feature-icon mx-auto mb-3 bg-info-subtle">
+                        <i class="bi bi-droplet-fill fs-2 text-info"></i>
+                    </div>
+                    <h5 class="fw-semibold">Hydration Tracking</h5>
+                    <p class="text-muted">Log water intake with one click. The expert system will alert you if you're falling short of your daily hydration goal.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm text-center p-4">
+                    <div class="ns-feature-icon mx-auto mb-3 bg-danger-subtle">
+                        <i class="bi bi-bullseye fs-2 text-danger"></i>
+                    </div>
+                    <h5 class="fw-semibold">Personalised Goals</h5>
+                    <p class="text-muted">Set custom targets for calories, protein, carbs, fat, sugar, fibre, sodium, and water. Your TDEE is automatically estimated from your profile.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm text-center p-4">
+                    <div class="ns-feature-icon mx-auto mb-3 bg-secondary-subtle">
+                        <i class="bi bi-shield-check fs-2 text-secondary"></i>
+                    </div>
+                    <h5 class="fw-semibold">Privacy First</h5>
+                    <p class="text-muted">All data stored locally on your device. No sensitive biometric data shared. Passwords are securely hashed. GDPR-compliant design.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA -->
+<section class="py-5 text-center">
+    <div class="container">
+        <h3 class="fw-bold mb-3">Ready to start your nutrition journey?</h3>
+        <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg px-5">
+            <i class="bi bi-person-plus me-2"></i>Create Free Account
+        </a>
+    </div>
+</section>
+
+{% endblock %}

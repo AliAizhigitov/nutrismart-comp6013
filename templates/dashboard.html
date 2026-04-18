@@ -1,0 +1,326 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard – NutriSmart{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4">
+
+    <!-- Header row -->
+    <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
+        <div>
+            <h4 class="fw-bold mb-0">
+                <i class="bi bi-speedometer2 me-2 text-primary"></i>Today's Dashboard
+            </h4>
+            <small class="text-muted">{{ today }}</small>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('ai_chat') }}" class="btn btn-outline-primary fw-semibold">
+                <i class="bi bi-robot me-1"></i> AI Assistant
+            </a>
+            <a href="{{ url_for('log_meal') }}" class="btn btn-primary fw-semibold">
+                <i class="bi bi-plus-lg me-1"></i> Log Meal
+            </a>
+        </div>
+    </div>
+
+    <!-- ── Expert system feedback ── -->
+    {% if ai_summary or anomalies %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm ns-gradient-card">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="bi bi-robot fs-2 me-3"></i>
+                        <div>
+                            <h5 class="mb-0 fw-bold">🤖 AI Daily Summary</h5>
+                            <small class="opacity-75">Powered by machine learning & predictive analytics</small>
+                        </div>
+                    </div>
+                    {% for insight in ai_summary %}
+                        <p class="mb-2"><i class="bi bi-check-circle me-2"></i>{{ insight }}</p>
+                    {% endfor %}
+                    
+                    {% if anomalies %}
+                        <div class="alert alert-warning bg-white bg-opacity-25 border-0 mt-3">
+                            <strong><i class="bi bi-exclamation-triangle me-2"></i>Unusual Patterns Detected:</strong>
+                            <ul class="mb-0 mt-2">
+                            {% for anomaly in anomalies %}
+                                <li>{{ anomaly.message }} (Z-score: {{ anomaly.z_score }})</li>
+                            {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ── Expert system feedback ── -->
+    {% if feedbacks %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white fw-semibold py-3">
+                    <i class="bi bi-cpu me-2 text-primary"></i>Intelligent Feedback
+                    <span class="badge bg-primary rounded-pill ms-2">{{ feedbacks|length }}</span>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                    {% for fb in feedbacks %}
+                        <div class="col-md-6">
+                            <div class="ns-feedback ns-feedback-{{ fb.severity }} d-flex gap-3">
+                                <span class="fs-4 flex-shrink-0">{{ fb.icon }}</span>
+                                <div>
+                                    <div class="d-flex align-items-center gap-2 mb-1">
+                                        <span class="badge
+                                            {% if fb.severity == 'danger' %}bg-danger
+                                            {% elif fb.severity == 'warning' %}bg-warning text-dark
+                                            {% else %}bg-info text-dark{% endif %}">
+                                            {{ fb.category }}
+                                        </span>
+                                        <span class="badge
+                                            {% if fb.severity == 'danger' %}bg-danger
+                                            {% elif fb.severity == 'warning' %}bg-warning text-dark
+                                            {% else %}bg-secondary{% endif %} opacity-75">
+                                            {{ fb.severity }}
+                                        </span>
+                                    </div>
+                                    <p class="mb-0 small">{{ fb.message }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ── Macro summary cards ── -->
+    <div class="row g-3 mb-4">
+        {% set macro_items = [
+            ('Calories', totals.calories|round|int, goals.calories_target, 'kcal', 'fire', 'danger', progress.calories),
+            ('Protein',  totals.protein_g,          goals.protein_target,  'g',    'egg-fried', 'success', progress.protein),
+            ('Carbs',    totals.carbs_g,             goals.carbs_target,    'g',    'bread-slice','warning', progress.carbs),
+            ('Fat',      totals.fat_g,               goals.fat_target,      'g',    'droplet',   'info',    progress.fat),
+            ('Fibre',    totals.fiber_g,             goals.fiber_target,    'g',    'flower1',   'purple',  progress.fiber),
+            ('Hydration',water_ml,                   goals.water_target_ml, 'ml',   'droplet-fill','primary', progress.water),
+        ] %}
+        {% for name, val, target, unit, icon, color, pct in macro_items %}
+        <div class="col-6 col-md-4 col-lg-2">
+            <div class="card border-0 shadow-sm h-100 text-center p-3">
+                <div class="ns-macro-icon mx-auto mb-2 bg-{{ color }}-subtle">
+                    <i class="bi bi-{{ icon }} text-{{ color }}"></i>
+                </div>
+                <div class="fw-bold fs-5">{{ val|round(1) }}</div>
+                <div class="text-muted small">/ {{ target }} {{ unit }}</div>
+                <div class="text-uppercase text-muted" style="font-size:0.65rem;letter-spacing:.05em;">{{ name }}</div>
+                <div class="progress mt-2" style="height:5px;">
+                    <div class="progress-bar bg-{{ color }}" style="width:{{ [pct, 100]|min }}%;"></div>
+                </div>
+                <small class="text-muted">{{ pct }}%</small>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="row g-4">
+        <!-- ── Meal log ── -->
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white fw-semibold py-3 d-flex align-items-center justify-content-between">
+                    <span><i class="bi bi-journal-text me-2 text-success"></i>Today's Meals</span>
+                    <a href="{{ url_for('log_meal') }}" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-plus"></i> Add
+                    </a>
+                </div>
+                <div class="card-body p-0">
+                    {% set meal_labels = {
+                        'breakfast': ('Breakfast', 'bi-sunrise', 'text-warning'),
+                        'lunch':     ('Lunch',     'bi-sun',     'text-success'),
+                        'dinner':    ('Dinner',    'bi-moon',    'text-primary'),
+                        'snack':     ('Snack',     'bi-cookie',  'text-danger'),
+                    } %}
+                    {% for meal_type, (label, icon, color) in meal_labels.items() %}
+                        <div class="border-bottom px-3 py-2">
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <i class="bi {{ icon }} {{ color }}"></i>
+                                <span class="fw-medium">{{ label }}</span>
+                                {% if meals_by_type[meal_type] %}
+                                    <span class="badge bg-light text-dark border ms-auto">
+                                        {{ meals_by_type[meal_type]|sum(attribute='calories')|round|int }} kcal
+                                    </span>
+                                {% endif %}
+                            </div>
+                            {% if meals_by_type[meal_type] %}
+                                {% for meal in meals_by_type[meal_type] %}
+                                <div class="d-flex align-items-center justify-content-between py-1 px-2 ns-meal-row rounded">
+                                    <div>
+                                        <span class="fw-medium small">{{ meal.food_name }}</span>
+                                        <span class="text-muted small ms-1">({{ meal.quantity_g }}g)</span>
+                                        <div class="text-muted" style="font-size:.7rem;">
+                                            P:{{ meal.protein_g|round(1) }}g &nbsp;
+                                            C:{{ meal.carbs_g|round(1) }}g &nbsp;
+                                            F:{{ meal.fat_g|round(1) }}g
+                                        </div>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="badge bg-light text-dark border">{{ meal.calories|round|int }} kcal</span>
+                                        <form method="POST" action="{{ url_for('delete_meal', meal_id=meal.id) }}"
+                                              onsubmit="return confirm('Remove this entry?')">
+                                            <button type="submit" class="btn btn-sm btn-link text-danger p-0">
+                                                <i class="bi bi-trash3"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <p class="text-muted small mb-1 ms-2">Nothing logged yet.</p>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Right column ── -->
+        <div class="col-lg-5">
+            <!-- Macros Pie -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white fw-semibold py-3">
+                    <i class="bi bi-pie-chart me-2 text-warning"></i>Macro Split
+                </div>
+                <div class="card-body d-flex justify-content-center">
+                    <div style="width:220px;height:220px;">
+                        <canvas id="macroPieChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Water log -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white fw-semibold py-3">
+                    <i class="bi bi-droplet-fill me-2 text-info"></i>Hydration
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="text-center">
+                            <div class="fw-bold fs-4 text-info">{{ water_ml }}</div>
+                            <small class="text-muted">of {{ goals.water_target_ml }} ml</small>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="progress" style="height:14px; border-radius:7px;">
+                                <div class="progress-bar bg-info" style="width:{{ [progress.water, 100]|min }}%;">
+                                    {{ progress.water }}%
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <form method="POST" action="{{ url_for('log_water') }}" class="d-flex gap-2">
+                        <select name="amount_ml" class="form-select form-select-sm">
+                            <option value="150">150 ml (small cup)</option>
+                            <option value="250" selected>250 ml (glass)</option>
+                            <option value="330">330 ml (can)</option>
+                            <option value="500">500 ml (bottle)</option>
+                            <option value="750">750 ml</option>
+                            <option value="1000">1000 ml</option>
+                        </select>
+                        <button type="submit" class="btn btn-info btn-sm text-white fw-semibold text-nowrap">
+                            <i class="bi bi-plus"></i> Add
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Weekly calories mini-chart -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white fw-semibold py-3">
+                    <i class="bi bi-bar-chart me-2 text-primary"></i>7-Day Calories
+                </div>
+                <div class="card-body">
+                    <canvas id="weeklyCalChart" height="130"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// ── Macro Pie Chart ──────────────────────────────────────────────
+const p  = {{ totals.protein_g|default(0) }};
+const c  = {{ totals.carbs_g|default(0) }};
+const f  = {{ totals.fat_g|default(0) }};
+const total = (p * 4) + (c * 4) + (f * 9);
+
+new Chart(document.getElementById('macroPieChart'), {
+    type: 'doughnut',
+    data: {
+        labels: ['Protein', 'Carbohydrates', 'Fat'],
+        datasets: [{
+            data: total > 0 ? [p * 4, c * 4, f * 9] : [1, 1, 1],
+            backgroundColor: ['#198754','#ffc107','#0dcaf0'],
+            borderWidth: 2,
+            borderColor: '#fff'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } },
+            tooltip: {
+                callbacks: {
+                    label: (ctx) => {
+                        const pct = total > 0 ? ((ctx.raw / total) * 100).toFixed(1) : 0;
+                        return ` ${ctx.label}: ${pct}%`;
+                    }
+                }
+            }
+        }
+    }
+});
+
+// ── Weekly Calories Bar Chart ───────────────────────────────────
+const labels   = {{ chart_labels|safe }};
+const calories = {{ chart_calories|safe }};
+const target   = {{ goals.calories_target }};
+
+new Chart(document.getElementById('weeklyCalChart'), {
+    type: 'bar',
+    data: {
+        labels,
+        datasets: [
+            {
+                label: 'Calories',
+                data: calories,
+                backgroundColor: calories.map(v => v > target * 1.1 ? '#dc3545' : v > 0 ? '#0d6efd' : '#dee2e6'),
+                borderRadius: 4,
+            },
+            {
+                label: 'Target',
+                data: Array(7).fill(target),
+                type: 'line',
+                borderColor: '#ffc107',
+                borderDash: [6,3],
+                borderWidth: 2,
+                pointRadius: 0,
+                fill: false,
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+            y: { beginAtZero: true, grid: { color: '#f0f0f0' } },
+            x: { grid: { display: false } }
+        }
+    }
+});
+</script>
+{% endblock %}

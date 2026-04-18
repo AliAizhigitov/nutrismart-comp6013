@@ -1,0 +1,273 @@
+/* ============================================================
+   NutriSmart – Main Stylesheet
+   Ali Aizhigitov | COMP6013 | 2025-26
+   ============================================================ */
+
+/* ── Custom Properties ─────────────────────────────────────── */
+:root {
+    --ns-navy:        #0a1628;
+    --ns-navy-soft:   #111e35;
+    --ns-accent:      #4f8cff;
+    --ns-green:       #22c55e;
+    --ns-radius:      12px;
+    --ns-shadow:      0 2px 16px rgba(0,0,0,.08);
+    --ns-transition:  .18s ease;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+/* ── Base ───────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+    background: #f5f7fa;
+    color: #1a1a2e;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ── Navbar ─────────────────────────────────────────────────── */
+.ns-navbar {
+    background: var(--ns-navy) !important;
+    border-bottom: 1px solid rgba(255,255,255,.06);
+    min-height: 62px;
+    box-shadow: 0 2px 12px rgba(0,0,0,.18);
+}
+
+.ns-navbar .nav-link {
+    font-size: .875rem;
+    font-weight: 500;
+    padding: .5rem .85rem !important;
+    border-radius: 8px;
+    transition: background var(--ns-transition), color var(--ns-transition);
+    color: rgba(255,255,255,.75) !important;
+}
+
+.ns-navbar .nav-link:hover,
+.ns-navbar .nav-link.active {
+    background: rgba(255,255,255,.1);
+    color: #fff !important;
+}
+
+.ns-navbar .navbar-brand {
+    font-size: 1.15rem;
+    letter-spacing: -.5px;
+}
+
+/* ── User avatar ─────────────────────────────────────────────── */
+.ns-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--ns-accent);
+    color: #fff;
+    font-weight: 700;
+    font-size: .875rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.ns-avatar-lg {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--ns-accent), #6c3ce1);
+    color: #fff;
+    font-weight: 700;
+    font-size: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ── Main content ────────────────────────────────────────────── */
+.ns-main {
+    flex: 1;
+    padding-bottom: 2rem;
+}
+
+/* ── Auth card ───────────────────────────────────────────────── */
+.ns-auth-card {
+    width: 100%;
+    max-width: 440px;
+}
+
+/* ── Hero section ────────────────────────────────────────────── */
+.ns-hero {
+    background: linear-gradient(135deg, var(--ns-navy) 0%, #1a3a6e 60%, #1a2a4e 100%);
+    min-height: 70vh;
+}
+
+.text-white-75 { color: rgba(255,255,255,.75); }
+
+.py-6 { padding-top: 4rem; padding-bottom: 4rem; }
+
+/* ── Feature icons ───────────────────────────────────────────── */
+.ns-feature-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ── Dashboard macro icon ────────────────────────────────────── */
+.ns-macro-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+}
+
+/* ── Feedback cards ──────────────────────────────────────────── */
+.ns-feedback {
+    border-radius: var(--ns-radius);
+    padding: 1rem 1.1rem;
+    border-left: 4px solid transparent;
+}
+
+.ns-feedback-info {
+    background: #e8f4fd;
+    border-left-color: #0dcaf0;
+}
+
+.ns-feedback-warning {
+    background: #fff9e6;
+    border-left-color: #ffc107;
+}
+
+.ns-feedback-danger {
+    background: #fdecea;
+    border-left-color: #dc3545;
+}
+
+/* ── Meal row hover ──────────────────────────────────────────── */
+.ns-meal-row {
+    transition: background var(--ns-transition);
+}
+.ns-meal-row:hover {
+    background: #f8faff;
+}
+
+/* ── Cards ───────────────────────────────────────────────────── */
+.card {
+    border-radius: var(--ns-radius);
+    transition: box-shadow var(--ns-transition);
+}
+
+.card:hover {
+    box-shadow: 0 4px 24px rgba(0,0,0,.10) !important;
+}
+
+.card-header {
+    border-radius: var(--ns-radius) var(--ns-radius) 0 0 !important;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: .9rem;
+}
+
+/* ── Buttons ─────────────────────────────────────────────────── */
+.btn {
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all var(--ns-transition);
+}
+
+/* ── Form controls ───────────────────────────────────────────── */
+.form-control, .form-select {
+    border-radius: 8px;
+    border: 1.5px solid #e2e8f0;
+    transition: border-color var(--ns-transition), box-shadow var(--ns-transition);
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--ns-accent);
+    box-shadow: 0 0 0 3px rgba(79,140,255,.15);
+}
+
+.input-group-text {
+    border: 1.5px solid #e2e8f0;
+    border-radius: 8px;
+}
+
+/* ── Progress bars ───────────────────────────────────────────── */
+.progress {
+    border-radius: 99px;
+    background: #eef0f4;
+}
+
+.progress-bar {
+    border-radius: 99px;
+    transition: width .5s ease;
+}
+
+/* ── Table ───────────────────────────────────────────────────── */
+.table-hover tbody tr:hover {
+    background: #f8faff;
+}
+
+.table th {
+    font-size: .75rem;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    color: #6c757d;
+    font-weight: 600;
+    padding: .85rem .75rem;
+}
+
+/* ── Footer ──────────────────────────────────────────────────── */
+.ns-footer {
+    background: var(--ns-navy);
+    color: rgba(255,255,255,.75);
+    font-size: .8rem;
+    margin-top: auto;
+}
+
+/* Override Bootstrap's text-muted inside dark footer */
+.ns-footer .text-muted,
+.ns-footer small {
+    color: rgba(255,255,255,.75) !important;
+}
+
+/* ── Gradient hero cards (AI Summary, Right Now) ─────────────── */
+.ns-gradient-card {
+    background: linear-gradient(135deg, #4a6cf7 0%, #6a3de8 100%) !important;
+    color: #fff !important;
+}
+
+.ns-gradient-card .card-body,
+.ns-gradient-card .text-white,
+.ns-gradient-card p,
+.ns-gradient-card small,
+.ns-gradient-card h5,
+.ns-gradient-card h6,
+.ns-gradient-card .opacity-75 {
+    color: #fff !important;
+}
+
+.ns-gradient-card .bg-white.bg-opacity-25 {
+    background-color: rgba(255,255,255,0.2) !important;
+}
+
+/* ── Badge colours (purple not in Bootstrap 5) ───────────────── */
+.text-purple { color: #7c3aed !important; }
+.bg-purple    { background-color: #7c3aed !important; }
+.bg-purple-subtle { background-color: #ede9fe !important; }
+
+/* ── Responsive utilities ────────────────────────────────────── */
+@media (max-width: 576px) {
+    .ns-auth-card { margin: 1rem; }
+    .ns-hero { min-height: 85vh; }
+    .display-4 { font-size: 2rem; }
+}
+
+/* ── Scrollbar ───────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #ccc; border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: #aaa; }

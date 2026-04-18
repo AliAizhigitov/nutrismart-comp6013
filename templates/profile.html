@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+{% block title %}Profile – NutriSmart{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width:650px;">
+    <div class="d-flex align-items-center gap-3 mb-4">
+        <a href="{{ url_for('dashboard') }}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <div>
+            <h4 class="fw-bold mb-0"><i class="bi bi-person-circle me-2 text-primary"></i>My Profile</h4>
+            <small class="text-muted">Used to estimate your TDEE via the Mifflin-St Jeor equation</small>
+        </div>
+    </div>
+
+    <!-- Avatar -->
+    <div class="text-center mb-4">
+        <div class="ns-avatar-lg mx-auto mb-2">
+            {{ (user.full_name or user.username)[0].upper() }}
+        </div>
+        <h5 class="fw-bold mb-0">{{ user.full_name or user.username }}</h5>
+        <small class="text-muted">@{{ user.username }} &nbsp;|&nbsp; {{ user.email }}</small>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+            <form method="POST" action="{{ url_for('profile') }}">
+                <div class="row g-3">
+                    <div class="col-sm-6">
+                        <label class="form-label fw-medium">Full Name</label>
+                        <input type="text" name="full_name" class="form-control"
+                               value="{{ user.full_name or '' }}">
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label fw-medium">Age</label>
+                        <input type="number" name="age" class="form-control"
+                               value="{{ user.age or '' }}" min="10" max="120" placeholder="e.g. 22">
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label fw-medium">Weight (kg)</label>
+                        <input type="number" name="weight_kg" class="form-control"
+                               value="{{ user.weight_kg or '' }}" min="20" max="300" step="0.1" placeholder="e.g. 70.5">
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label fw-medium">Height (cm)</label>
+                        <input type="number" name="height_cm" class="form-control"
+                               value="{{ user.height_cm or '' }}" min="100" max="250" step="0.5" placeholder="e.g. 175">
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label fw-medium">Gender</label>
+                        <select name="gender" class="form-select">
+                            <option value="">Prefer not to say</option>
+                            <option value="male"   {% if user.gender == 'male'   %}selected{% endif %}>Male</option>
+                            <option value="female" {% if user.gender == 'female' %}selected{% endif %}>Female</option>
+                            <option value="other"  {% if user.gender == 'other'  %}selected{% endif %}>Other</option>
+                        </select>
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label fw-medium">Activity Level</label>
+                        <select name="activity_level" class="form-select">
+                            <option value="sedentary"   {% if user.activity_level == 'sedentary'   %}selected{% endif %}>Sedentary (desk job)</option>
+                            <option value="light"       {% if user.activity_level == 'light'       %}selected{% endif %}>Lightly active (1-3 days/week)</option>
+                            <option value="moderate"    {% if user.activity_level == 'moderate'    %}selected{% endif %}>Moderately active (3-5 days/week)</option>
+                            <option value="active"      {% if user.activity_level == 'active'      %}selected{% endif %}>Very active (6-7 days/week)</option>
+                            <option value="very_active" {% if user.activity_level == 'very_active' %}selected{% endif %}>Extra active (physical job)</option>
+                        </select>
+                    </div>
+                    <div class="col-12 mt-2">
+                        <button type="submit" class="btn btn-primary fw-semibold px-5">
+                            <i class="bi bi-check-lg me-1"></i> Save Profile
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Account info -->
+    <div class="card border-0 shadow-sm mt-4">
+        <div class="card-body p-4">
+            <h6 class="fw-semibold mb-3">Account Details</h6>
+            <dl class="row mb-0">
+                <dt class="col-sm-4 text-muted">Username</dt>
+                <dd class="col-sm-8">{{ user.username }}</dd>
+                <dt class="col-sm-4 text-muted">Email</dt>
+                <dd class="col-sm-8">{{ user.email }}</dd>
+                <dt class="col-sm-4 text-muted">Member since</dt>
+                <dd class="col-sm-8">{{ user.created_at[:10] if user.created_at else '—' }}</dd>
+            </dl>
+        </div>
+    </div>
+</div>
+{% endblock %}

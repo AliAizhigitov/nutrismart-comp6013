@@ -1,0 +1,220 @@
+{% extends 'base.html' %}
+{% block title %}Insights – NutriSmart{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4">
+
+    <div class="mb-4">
+        <h4 class="fw-bold mb-0">
+            <i class="bi bi-graph-up me-2 text-primary"></i>Insights & Expert Feedback
+        </h4>
+        <small class="text-muted">AI-powered nutritional analysis for today and this week</small>
+    </div>
+
+    <div class="row g-4">
+
+        <!-- ── Expert Feedback Cards ── -->
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white fw-semibold py-3">
+                    <i class="bi bi-cpu me-2 text-primary"></i>Rule-Based Expert System Output
+                    <span class="badge bg-primary ms-2">{{ feedbacks|length }} rule(s) fired</span>
+                </div>
+                <div class="card-body">
+                    {% if feedbacks %}
+                        {% for fb in feedbacks %}
+                        <div class="ns-feedback ns-feedback-{{ fb.severity }} mb-3">
+                            <div class="d-flex gap-3">
+                                <span class="fs-3 flex-shrink-0">{{ fb.icon }}</span>
+                                <div class="w-100">
+                                    <div class="d-flex align-items-center justify-content-between mb-1">
+                                        <span class="fw-semibold">{{ fb.category }}</span>
+                                        <span class="badge
+                                            {% if fb.severity == 'danger' %}bg-danger
+                                            {% elif fb.severity == 'warning' %}bg-warning text-dark
+                                            {% else %}bg-info text-dark{% endif %}">
+                                            {{ fb.severity|upper }}
+                                        </span>
+                                    </div>
+                                    <p class="mb-1 small">{{ fb.message }}</p>
+                                    <small class="text-muted">Rule: <code>{{ fb.rule_id }}</code></small>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-5 text-muted">
+                            <i class="bi bi-check-circle-fill display-3 text-success"></i>
+                            <p class="mt-3">No issues detected. Keep up the great work!</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Charts & Stats ── -->
+        <div class="col-lg-7">
+
+            <!-- Working memory snapshot -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white fw-semibold py-3">
+                    <i class="bi bi-table me-2 text-secondary"></i>Today's Working Memory Snapshot
+                </div>
+                <div class="card-body">
+                    <div class="row g-2">
+                        {% set wm_items = [
+                            ('Calories', wm.calories, wm.calories_target, 'kcal', 'fire'),
+                            ('Protein',  wm.protein_g, wm.protein_target, 'g', 'egg-fried'),
+                            ('Carbs',    wm.carbs_g, wm.carbs_target, 'g', 'bread-slice'),
+                            ('Fat',      wm.fat_g, wm.fat_target, 'g', 'droplet'),
+                            ('Sugar',    wm.sugar_g, wm.sugar_limit, 'g', 'cup-straw'),
+                            ('Fibre',    wm.fiber_g, wm.fiber_target, 'g', 'flower1'),
+                            ('Sodium',   wm.sodium_mg, wm.sodium_limit, 'mg', 'salt'),
+                            ('Water',    wm.water_ml, wm.water_target_ml, 'ml', 'droplet-fill'),
+                        ] %}
+                        {% for label, actual, target, unit, icon in wm_items %}
+                        <div class="col-6 col-md-3">
+                            <div class="text-center p-2 rounded bg-light">
+                                <div class="fw-bold">{{ actual|round(1) }} {{ unit }}</div>
+                                <div class="text-muted" style="font-size:.7rem;">/ {{ target }} {{ unit }}</div>
+                                <div class="progress mt-1" style="height:4px;">
+                                    {% set pct = [(actual / target * 100)|int if target else 0, 150]|min %}
+                                    <div class="progress-bar {% if pct > 110 %}bg-danger{% elif pct >= 80 %}bg-success{% else %}bg-warning{% endif %}"
+                                         style="width:{{ [pct, 100]|min }}%;"></div>
+                                </div>
+                                <small class="text-muted">{{ label }}</small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    {% if wm.tdee %}
+                    <div class="alert alert-info mt-3 mb-0 small">
+                        <i class="bi bi-calculator me-1"></i>
+                        Estimated TDEE (Mifflin-St Jeor): <strong>{{ wm.tdee|round|int }} kcal/day</strong>
+                        &nbsp;|&nbsp; BMR: <strong>{{ wm.bmr|round|int }} kcal</strong>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Weekly macro chart -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white fw-semibold py-3">
+                    <i class="bi bi-bar-chart-line me-2 text-primary"></i>7-Day Macro Trends
+                </div>
+                <div class="card-body">
+                    <canvas id="weeklyMacroChart" height="200"></canvas>
+                </div>
+            </div>
+
+            <!-- Key stats -->
+            <div class="row g-3 mb-4">
+                <div class="col-sm-4">
+                    <div class="card border-0 shadow-sm text-center p-3">
+                        <div class="fw-bold fs-3 text-warning">{{ avg_calories }}</div>
+                        <small class="text-muted">Avg Calories / Day</small>
+                    </div>
+                </div>
+                <div class="col-sm-4">
+                    <div class="card border-0 shadow-sm text-center p-3">
+                        <div class="fw-bold fs-3 text-success">{{ avg_protein }}g</div>
+                        <small class="text-muted">Avg Protein / Day</small>
+                    </div>
+                </div>
+                <div class="col-sm-4">
+                    <div class="card border-0 shadow-sm text-center p-3">
+                        <div class="fw-bold fs-3 {% if sugar_streak >= 3 %}text-danger{% elif sugar_streak >= 1 %}text-warning{% else %}text-success{% endif %}">
+                            {{ sugar_streak }}
+                        </div>
+                        <small class="text-muted">Sugar Limit Exceeded (days)</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Predictive Analytics -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white fw-semibold py-3">
+                    <i class="bi bi-graph-up-arrow me-2 text-primary"></i>AI Predictive Analytics (Next 7 Days)
+                </div>
+                <div class="card-body">
+                    <p class="text-muted small mb-3">
+                        <i class="bi bi-robot me-1"></i>
+                        Machine learning predictions based on your last 30 days using linear regression
+                    </p>
+                    {% if predictions.calories %}
+                    <div class="row g-3">
+                        {% for key, pred in predictions.items() %}
+                        {% if pred %}
+                        <div class="col-md-6 col-lg-3">
+                            <div class="p-3 rounded {% if pred.trend == 'increasing' %}bg-warning{% elif pred.trend == 'decreasing' %}bg-info{% else %}bg-success{% endif %} bg-opacity-10">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="fw-semibold text-capitalize">{{ key }}</span>
+                                    <i class="bi bi-{% if pred.trend == 'increasing' %}arrow-up{% elif pred.trend == 'decreasing' %}arrow-down{% else %}arrow-right{% endif %} fs-5"></i>
+                                </div>
+                                <div class="fw-bold fs-5">{{ pred.predicted_7day_avg }}</div>
+                                <small class="text-muted">predicted avg</small>
+                                <div class="mt-2">
+                                    <span class="badge {% if pred.trend == 'increasing' %}bg-warning{% elif pred.trend == 'decreasing' %}bg-info{% else %}bg-success{% endif %} text-dark">
+                                        {{ pred.trend }} ({{ pred.change_percent }}%)
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-center text-muted py-4">
+                        <i class="bi bi-hourglass-split me-2"></i>
+                        Not enough data yet. Log meals for at least 7 days to see predictions.
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+const cd = {{ chart_data|safe }};
+
+new Chart(document.getElementById('weeklyMacroChart'), {
+    type: 'bar',
+    data: {
+        labels: cd.labels,
+        datasets: [
+            {
+                label: 'Protein (g)',
+                data: cd.protein,
+                backgroundColor: '#198754',
+                borderRadius: 3,
+            },
+            {
+                label: 'Carbs (g)',
+                data: cd.carbs,
+                backgroundColor: '#ffc107',
+                borderRadius: 3,
+            },
+            {
+                label: 'Fat (g)',
+                data: cd.fat,
+                backgroundColor: '#0dcaf0',
+                borderRadius: 3,
+            },
+        ]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { position: 'top' } },
+        scales: {
+            x: { stacked: false, grid: { display: false } },
+            y: { beginAtZero: true, grid: { color: '#f0f0f0' } }
+        }
+    }
+});
+</script>
+{% endblock %}

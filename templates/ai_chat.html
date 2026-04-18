@@ -1,0 +1,234 @@
+{% extends 'base.html' %}
+{% block title %}AI Nutritionist – NutriSmart{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4">
+    <div class="row g-4">
+        <!-- AI Chat -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm" style="height: 75vh; display: flex; flex-direction: column;">
+                <div class="card-header ns-gradient-card py-3" style="border-radius: 12px 12px 0 0 !important;">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-robot fs-4"></i>
+                        <div>
+                            <h5 class="mb-0 fw-bold">AI Nutritionist</h5>
+                            <small class="opacity-90">Powered by Claude Sonnet 4</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-4 overflow-auto flex-grow-1" id="chatMessages" style="background: #f8f9fa;">
+                    <div class="text-center text-muted py-5">
+                        <i class="bi bi-chat-dots display-3 mb-3"></i>
+                        <p>Ask me anything about nutrition, diet planning, or your progress!</p>
+                        <div class="d-flex flex-wrap gap-2 justify-content-center mt-3">
+                            <button class="btn btn-sm btn-outline-primary" onclick="askSuggestion('What should I eat for dinner?')">
+                                💡 Dinner ideas
+                            </button>
+                            <button class="btn btn-sm btn-outline-primary" onclick="askSuggestion('How am I doing today?')">
+                                📊 My progress
+                            </button>
+                            <button class="btn btn-sm btn-outline-primary" onclick="askSuggestion('Tips to increase protein?')">
+                                🥚 Protein tips
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-white border-0 p-3">
+                    <form id="chatForm" class="d-flex gap-2">
+                        <input type="text" id="chatInput" class="form-control" 
+                               placeholder="Ask about nutrition, your goals, meal suggestions..." autocomplete="off">
+                        <button type="submit" class="btn btn-primary px-4" id="sendBtn">
+                            <i class="bi bi-send-fill"></i>
+                        </button>
+                    </form>
+                    <small class="text-muted d-block mt-2">
+                        <i class="bi bi-info-circle me-1"></i>
+                        AI responses are for informational purposes. Always consult a healthcare professional.
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right sidebar -->
+        <div class="col-lg-4">
+            <!-- Quick Actions -->
+            <div class="card border-0 shadow-sm mb-3">
+                <div class="card-header bg-white fw-semibold py-3">
+                    <i class="bi bi-lightning-charge-fill me-2 text-warning"></i>Quick Actions
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-outline-success" onclick="getRecommendations()">
+                            <i class="bi bi-stars me-2"></i>Get Meal Recommendations
+                        </button>
+                        <button class="btn btn-outline-primary" onclick="showNLParser()">
+                            <i class="bi bi-chat-left-text me-2"></i>Quick Log with AI
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Meal Recommendations -->
+            <div class="card border-0 shadow-sm" id="recommendCard" style="display:none;">
+                <div class="card-header bg-white fw-semibold py-3">
+                    <i class="bi bi-stars me-2 text-warning"></i>AI Recommendations
+                </div>
+                <div class="card-body">
+                    <div id="recommendContent" class="small"></div>
+                </div>
+            </div>
+
+            <!-- Natural Language Parser -->
+            <div class="card border-0 shadow-sm" id="nlParserCard" style="display:none;">
+                <div class="card-header bg-white fw-semibold py-3">
+                    <i class="bi bi-chat-left-text me-2 text-primary"></i>Quick Log
+                </div>
+                <div class="card-body">
+                    <p class="small text-muted mb-2">Describe what you ate (AI will parse it):</p>
+                    <textarea id="nlInput" class="form-control mb-2" rows="3" 
+                              placeholder="e.g., grilled chicken breast with rice and broccoli"></textarea>
+                    <button class="btn btn-primary btn-sm w-100" onclick="parseAndLog()">
+                        <i class="bi bi-magic me-1"></i>Parse & Log
+                    </button>
+                    <div id="parseResult" class="mt-2"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+const chatMessages = document.getElementById('chatMessages');
+const chatForm = document.getElementById('chatForm');
+const chatInput = document.getElementById('chatInput');
+const sendBtn = document.getElementById('sendBtn');
+
+// Chat functionality
+chatForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const message = chatInput.value.trim();
+    if (!message) return;
+    
+    addMessage(message, 'user');
+    chatInput.value = '';
+    sendBtn.disabled = true;
+    sendBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+    
+    try {
+        const res = await fetch('{{ url_for("ai_chat") }}', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: `message=${encodeURIComponent(message)}`
+        });
+        const data = await res.json();
+        addMessage(data.response || data.error, 'ai');
+    } catch (err) {
+        addMessage('Sorry, I encountered an error. Please try again.', 'ai');
+    } finally {
+        sendBtn.disabled = false;
+        sendBtn.innerHTML = '<i class="bi bi-send-fill"></i>';
+    }
+});
+
+function addMessage(text, sender) {
+    // Remove welcome message
+    const welcome = chatMessages.querySelector('.text-center.text-muted');
+    if (welcome) welcome.remove();
+    
+    const div = document.createElement('div');
+    div.className = `mb-3 d-flex ${sender === 'user' ? 'justify-content-end' : ''}`;
+    div.innerHTML = `
+        <div class="p-3 rounded ${sender === 'user' ? 'bg-primary text-white' : 'bg-white border'}" 
+             style="max-width:75%;">
+            ${sender === 'ai' ? '<i class="bi bi-robot me-2"></i>' : ''}
+            ${text.replace(/\n/g, '<br>')}
+        </div>
+    `;
+    chatMessages.appendChild(div);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function askSuggestion(q) {
+    chatInput.value = q;
+    chatForm.dispatchEvent(new Event('submit'));
+}
+
+// Recommendations
+async function getRecommendations() {
+    const card = document.getElementById('recommendCard');
+    const content = document.getElementById('recommendContent');
+    content.innerHTML = '<div class="text-center"><div class="spinner-border spinner-border-sm"></div></div>';
+    card.style.display = 'block';
+    
+    try {
+        const res = await fetch('{{ url_for("ai_recommend") }}');
+        const data = await res.json();
+        if (data.error) {
+            content.innerHTML = `<div class="alert alert-danger mb-0">${data.error}</div>`;
+        } else {
+            const rem = data.remaining;
+            content.innerHTML = `
+                <div class="alert alert-info small mb-2">
+                    <strong>Remaining today:</strong><br>
+                    ${rem.calories.toFixed(0)} kcal | ${rem.protein.toFixed(1)}g protein | 
+                    ${rem.carbs.toFixed(1)}g carbs | ${rem.fat.toFixed(1)}g fat
+                </div>
+                <div style="white-space: pre-wrap;">${data.recommendations}</div>
+            `;
+        }
+    } catch (err) {
+        content.innerHTML = '<div class="alert alert-danger mb-0">Failed to load recommendations</div>';
+    }
+}
+
+// NL Parser
+function showNLParser() {
+    const card = document.getElementById('nlParserCard');
+    card.style.display = card.style.display === 'none' ? 'block' : 'none';
+}
+
+async function parseAndLog() {
+    const text = document.getElementById('nlInput').value.trim();
+    const result = document.getElementById('parseResult');
+    if (!text) {
+        result.innerHTML = '<div class="alert alert-warning small mb-0">Please enter a description</div>';
+        return;
+    }
+    
+    result.innerHTML = '<div class="text-center"><div class="spinner-border spinner-border-sm"></div></div>';
+    
+    try {
+        const res = await fetch('{{ url_for("ai_parse_meal") }}', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({text})
+        });
+        const data = await res.json();
+        
+        if (data.error) {
+            result.innerHTML = `<div class="alert alert-danger small mb-0">${data.error}</div>`;
+            return;
+        }
+        
+        if (data.foods && data.foods.length > 0) {
+            let html = '<div class="alert alert-success small mb-0"><strong>Parsed successfully!</strong><br>';
+            data.foods.forEach(f => {
+                html += `• ${f.name} (${f.quantity_g}g) - ${f.calories} kcal<br>`;
+            });
+            html += '</div>';
+            html += '<a href="{{ url_for("log_meal") }}" class="btn btn-sm btn-primary w-100 mt-2">Go to Log Meal</a>';
+            result.innerHTML = html;
+            
+            // Store in sessionStorage for use on log_meal page
+            sessionStorage.setItem('parsedMeal', JSON.stringify(data.foods[0]));
+        } else {
+            result.innerHTML = '<div class="alert alert-warning small mb-0">No foods detected</div>';
+        }
+    } catch (err) {
+        result.innerHTML = '<div class="alert alert-danger small mb-0">Parse failed</div>';
+    }
+}
+</script>
+{% endblock %}

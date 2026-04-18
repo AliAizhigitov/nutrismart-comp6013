@@ -1,0 +1,198 @@
+{% extends 'base.html' %}
+{% block title %}AI Recommendations – NutriSmart{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4">
+
+    <div class="mb-4">
+        <h4 class="fw-bold mb-0">
+            <i class="bi bi-stars me-2 text-warning"></i>AI-Powered Meal Recommendations
+        </h4>
+        <small class="text-muted">Personalized suggestions based on your nutritional needs, eating history, and time of day</small>
+    </div>
+
+    <!-- Current Status -->
+    <div class="row mb-4">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm ns-gradient-card">
+                <div class="card-body p-4">
+                    <div>
+                        <h5 class="fw-bold mb-3"><i class="bi bi-clock me-2"></i>Right Now</h5>
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <div class="bg-white bg-opacity-25 rounded p-2 text-center">
+                                    <div class="fw-bold fs-5">{{ totals.calories|round|int }}</div>
+                                    <small>/ {{ goals.calories_target }} kcal</small>
+                                    <div class="text-uppercase mt-1" style="font-size:.65rem;letter-spacing:.05em;">Calories Today</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="bg-white bg-opacity-25 rounded p-2 text-center">
+                                    <div class="fw-bold fs-5">{{ (goals.calories_target - totals.calories)|round|int }}</div>
+                                    <small>kcal remaining</small>
+                                    <div class="text-uppercase mt-1" style="font-size:.65rem;letter-spacing:.05em;">Need</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="bg-white bg-opacity-25 rounded p-2 text-center">
+                                    <div class="fw-bold fs-5">{{ totals.protein_g|round(1) }}g</div>
+                                    <small>/ {{ goals.protein_target }}g</small>
+                                    <div class="text-uppercase mt-1" style="font-size:.65rem;letter-spacing:.05em;">Protein</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="bg-white bg-opacity-25 rounded p-2 text-center">
+                                    <div class="fw-bold fs-5">{{ totals.fiber_g|round(1) }}g</div>
+                                    <small>/ {{ goals.fiber_target }}g</small>
+                                    <div class="text-uppercase mt-1" style="font-size:.65rem;letter-spacing:.05em;">Fiber</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-4">
+                    <h6 class="fw-semibold mb-3"><i class="bi bi-graph-up me-2 text-primary"></i>7-Day Forecast</h6>
+                    {% if predictions.calories %}
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="small">Calories</span>
+                            <span class="badge 
+                                {% if predictions.calories.trend == 'increasing' %}bg-warning
+                                {% elif predictions.calories.trend == 'decreasing' %}bg-info
+                                {% else %}bg-success{% endif %} text-dark">
+                                {{ predictions.calories.trend }}
+                                {% if predictions.calories.change_percent > 0 %}↗{% elif predictions.calories.change_percent < 0 %}↘{% else %}→{% endif %}
+                                {{ predictions.calories.change_percent|abs }}%
+                            </span>
+                        </div>
+                    {% endif %}
+                    {% if predictions.protein %}
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="small">Protein</span>
+                            <span class="badge 
+                                {% if predictions.protein.trend == 'increasing' %}bg-success
+                                {% elif predictions.protein.trend == 'decreasing' %}bg-warning
+                                {% else %}bg-secondary{% endif %} text-white">
+                                {{ predictions.protein.trend }}
+                                {% if predictions.protein.change_percent > 0 %}↗{% elif predictions.protein.change_percent < 0 %}↘{% else %}→{% endif %}
+                                {{ predictions.protein.change_percent|abs }}%
+                            </span>
+                        </div>
+                    {% endif %}
+                    <small class="text-muted">Based on your last 30 days of data using linear regression</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recommendations by Meal Type -->
+    <ul class="nav nav-pills mb-3" id="mealTypeTab" role="tablist">
+        {% for type in ['breakfast', 'lunch', 'dinner', 'snack'] %}
+        <li class="nav-item" role="presentation">
+            <button class="nav-link {% if type == current_meal_type %}active{% endif %}" 
+                    id="{{ type }}-tab" data-bs-toggle="pill" data-bs-target="#{{ type }}" 
+                    type="button" role="tab">
+                {% if type == 'breakfast' %}🌅 Breakfast
+                {% elif type == 'lunch' %}☀️ Lunch
+                {% elif type == 'dinner' %}🌙 Dinner
+                {% else %}🍎 Snack{% endif %}
+            </button>
+        </li>
+        {% endfor %}
+    </ul>
+
+    <div class="tab-content" id="mealTypeTabContent">
+        {% for meal_type, recs in recommendations.items() %}
+        <div class="tab-pane fade {% if meal_type == current_meal_type %}show active{% endif %}" 
+             id="{{ meal_type }}" role="tabpanel">
+            
+            {% if recs %}
+            <div class="row g-3">
+                {% for rec in recs %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="card border-0 shadow-sm h-100 ns-recommendation-card">
+                        <div class="card-body p-4">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <h6 class="fw-bold mb-0">{{ rec.food.name }}</h6>
+                                <span class="badge bg-primary">Score: {{ rec.score|round|int }}</span>
+                            </div>
+                            
+                            <p class="text-muted small mb-3">
+                                <i class="bi bi-bookmark me-1"></i>{{ rec.food.category or 'General' }}
+                            </p>
+                            
+                            <div class="row g-2 mb-3">
+                                <div class="col-6">
+                                    <div class="bg-light rounded p-2 text-center">
+                                        <div class="fw-bold text-primary">{{ rec.food.calories_per_100g|round|int }}</div>
+                                        <small class="text-muted">kcal/100g</small>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="bg-light rounded p-2 text-center">
+                                        <div class="fw-bold text-success">{{ rec.food.protein_per_100g|round(1) }}g</div>
+                                        <small class="text-muted">protein</small>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3 small">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span class="text-muted">Carbs</span>
+                                    <span>{{ rec.food.carbs_per_100g|round(1) }}g</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span class="text-muted">Fat</span>
+                                    <span>{{ rec.food.fat_per_100g|round(1) }}g</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span class="text-muted">Fiber</span>
+                                    <span class="text-success fw-semibold">{{ rec.food.fiber_per_100g|round(1) }}g</span>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-muted">Sugar</span>
+                                    <span class="{% if rec.food.sugar_per_100g > 10 %}text-warning{% endif %}">
+                                        {{ rec.food.sugar_per_100g|round(1) }}g
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <div class="alert alert-info bg-info bg-opacity-10 border-0 mb-3 small">
+                                <i class="bi bi-lightbulb me-1"></i><strong>Why?</strong> {{ rec.reason }}
+                            </div>
+                            
+                            <a href="{{ url_for('log_meal') }}" class="btn btn-primary btn-sm w-100">
+                                <i class="bi bi-plus-lg me-1"></i>Log This Meal
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-5 text-muted">
+                <i class="bi bi-inbox display-3"></i>
+                <p class="mt-3">No recommendations available yet. Log more meals to train the AI!</p>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<style>
+.ns-recommendation-card {
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.ns-recommendation-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15) !important;
+}
+</style>
+{% endblock %}

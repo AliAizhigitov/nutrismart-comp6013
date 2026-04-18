@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% block title %}History – NutriSmart{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4">
+    <div class="mb-4">
+        <h4 class="fw-bold mb-0">
+            <i class="bi bi-calendar3 me-2 text-primary"></i>30-Day History
+        </h4>
+        <small class="text-muted">Your nutritional log for the past month</small>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="px-3">Date</th>
+                            <th>Meals</th>
+                            <th>Calories</th>
+                            <th>Protein</th>
+                            <th>Carbs</th>
+                            <th>Fat</th>
+                            <th>Sugar</th>
+                            <th>Fibre</th>
+                            <th>Sodium</th>
+                            <th>Water</th>
+                            <th>Cal Target</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for day in days %}
+                        {% set cal_pct = (day.calories / goals.calories_target * 100)|int if goals.calories_target else 0 %}
+                        <tr>
+                            <td class="px-3 fw-medium">
+                                <a href="{{ url_for('dashboard') }}" class="text-decoration-none">
+                                    {{ day.date }}
+                                </a>
+                            </td>
+                            <td>
+                                {% if day.meal_count > 0 %}
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle">
+                                        {{ day.meal_count }} meals
+                                    </span>
+                                {% else %}
+                                    <span class="text-muted small">—</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="fw-medium">{{ day.calories }}</span>
+                                    <div class="progress flex-grow-1" style="height:6px;min-width:50px;">
+                                        <div class="progress-bar
+                                            {% if cal_pct > 115 %}bg-danger
+                                            {% elif cal_pct >= 80 %}bg-success
+                                            {% elif cal_pct > 0 %}bg-warning
+                                            {% else %}bg-light{% endif %}"
+                                            style="width:{{ [cal_pct, 100]|min }}%;"></div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>{{ day.protein_g }}g</td>
+                            <td>{{ day.carbs_g }}g</td>
+                            <td>{{ day.fat_g }}g</td>
+                            <td class="{% if day.sugar_g > goals.sugar_limit %}text-danger fw-semibold{% endif %}">
+                                {{ day.sugar_g }}g
+                                {% if day.sugar_g > goals.sugar_limit %}
+                                    <i class="bi bi-exclamation-triangle-fill ms-1" title="Exceeds limit"></i>
+                                {% endif %}
+                            </td>
+                            <td class="{% if day.fiber_g >= goals.fiber_target %}text-success{% endif %}">
+                                {{ day.fiber_g }}g
+                            </td>
+                            <td class="{% if day.sodium_mg > goals.sodium_limit %}text-danger{% endif %}">
+                                {{ day.sodium_mg }}mg
+                            </td>
+                            <td class="{% if day.water_ml >= goals.water_target_ml %}text-info{% endif %}">
+                                {{ day.water_ml }}ml
+                            </td>
+                            <td>
+                                <small class="text-muted">{{ cal_pct }}%</small>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Legend -->
+    <div class="mt-3 d-flex gap-3 flex-wrap text-muted small">
+        <span><i class="bi bi-circle-fill text-success me-1"></i>On target</span>
+        <span><i class="bi bi-circle-fill text-warning me-1"></i>Below target</span>
+        <span><i class="bi bi-circle-fill text-danger me-1"></i>Exceeded limit</span>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% block title %}Goals – NutriSmart{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width:700px;">
+    <div class="d-flex align-items-center gap-3 mb-4">
+        <a href="{{ url_for('dashboard') }}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <div>
+            <h4 class="fw-bold mb-0"><i class="bi bi-bullseye me-2 text-danger"></i>My Goals</h4>
+            <small class="text-muted">Customise your daily nutritional targets</small>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+            <form method="POST" action="{{ url_for('goals') }}">
+                <div class="row g-4">
+
+                    <div class="col-12">
+                        <h6 class="fw-semibold text-muted text-uppercase" style="letter-spacing:.05em;">
+                            <i class="bi bi-fire me-1 text-danger"></i>Energy
+                        </h6>
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label fw-medium">Daily Calories (kcal)</label>
+                        <input type="number" name="calories_target" class="form-control"
+                               value="{{ goals.calories_target }}" min="500" max="8000" required>
+                        <div class="form-text">Recommended: 1,800–2,500 kcal for most adults</div>
+                    </div>
+
+                    <div class="col-12 mt-2">
+                        <h6 class="fw-semibold text-muted text-uppercase" style="letter-spacing:.05em;">
+                            <i class="bi bi-egg me-1 text-success"></i>Macronutrients
+                        </h6>
+                    </div>
+                    <div class="col-sm-4">
+                        <label class="form-label fw-medium">Protein (g)</label>
+                        <input type="number" name="protein_target" class="form-control"
+                               value="{{ goals.protein_target }}" min="0" max="500" step="0.5">
+                        <div class="form-text">0.8–2.2g per kg body weight</div>
+                    </div>
+                    <div class="col-sm-4">
+                        <label class="form-label fw-medium">Carbohydrates (g)</label>
+                        <input type="number" name="carbs_target" class="form-control"
+                               value="{{ goals.carbs_target }}" min="0" max="1000" step="0.5">
+                    </div>
+                    <div class="col-sm-4">
+                        <label class="form-label fw-medium">Fat (g)</label>
+                        <input type="number" name="fat_target" class="form-control"
+                               value="{{ goals.fat_target }}" min="0" max="500" step="0.5">
+                    </div>
+
+                    <div class="col-12 mt-2">
+                        <h6 class="fw-semibold text-muted text-uppercase" style="letter-spacing:.05em;">
+                            <i class="bi bi-shield-check me-1 text-warning"></i>Limits
+                        </h6>
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label fw-medium">Sugar limit (g)</label>
+                        <input type="number" name="sugar_limit" class="form-control"
+                               value="{{ goals.sugar_limit }}" min="0" max="200" step="0.5">
+                        <div class="form-text">NHS: max 30g free sugar/day for adults</div>
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label fw-medium">Sodium limit (mg)</label>
+                        <input type="number" name="sodium_limit" class="form-control"
+                               value="{{ goals.sodium_limit }}" min="0" max="10000">
+                        <div class="form-text">NHS: max 2,300mg/day</div>
+                    </div>
+
+                    <div class="col-12 mt-2">
+                        <h6 class="fw-semibold text-muted text-uppercase" style="letter-spacing:.05em;">
+                            <i class="bi bi-droplet-fill me-1 text-info"></i>Other
+                        </h6>
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label fw-medium">Fibre target (g)</label>
+                        <input type="number" name="fiber_target" class="form-control"
+                               value="{{ goals.fiber_target }}" min="0" max="100" step="0.5">
+                        <div class="form-text">NHS: 30g/day recommended</div>
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label fw-medium">Water target (ml)</label>
+                        <input type="number" name="water_target_ml" class="form-control"
+                               value="{{ goals.water_target_ml }}" min="500" max="10000" step="50">
+                        <div class="form-text">Typically 2,000–3,000ml/day</div>
+                    </div>
+
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary fw-semibold px-5">
+                            <i class="bi bi-check-lg me-1"></i> Save Goals
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

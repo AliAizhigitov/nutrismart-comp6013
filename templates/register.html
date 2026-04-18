@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% block title %}Create Account – NutriSmart{% endblock %}
+{% block content %}
+<div class="min-vh-100 d-flex align-items-center justify-content-center bg-light py-5">
+    <div class="card shadow-sm border-0 ns-auth-card" style="max-width:480px;">
+        <div class="card-body p-5">
+            <div class="text-center mb-4">
+                <i class="bi bi-heart-pulse-fill display-5 text-danger"></i>
+                <h2 class="fw-bold mt-2">Create account</h2>
+                <p class="text-muted">Start your intelligent nutrition journey</p>
+            </div>
+
+            <form method="POST" action="{{ url_for('register') }}" novalidate>
+                <div class="mb-3">
+                    <label class="form-label fw-medium">Full Name</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light"><i class="bi bi-person-badge"></i></span>
+                        <input type="text" name="full_name" class="form-control" placeholder="Ali Aizhigitov">
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-medium">Username <span class="text-danger">*</span></label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light"><i class="bi bi-at"></i></span>
+                        <input type="text" name="username" class="form-control" placeholder="ali_a" required minlength="3">
+                    </div>
+                    <div class="form-text">Min. 3 characters, lowercase.</div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-medium">Email <span class="text-danger">*</span></label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light"><i class="bi bi-envelope"></i></span>
+                        <input type="email" name="email" class="form-control" placeholder="ali@example.com" required>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-medium">Password <span class="text-danger">*</span></label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light"><i class="bi bi-lock"></i></span>
+                        <input type="password" name="password" class="form-control" placeholder="Min. 8 characters" required minlength="8" id="pw">
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <label class="form-label fw-medium">Confirm Password <span class="text-danger">*</span></label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light"><i class="bi bi-lock-fill"></i></span>
+                        <input type="password" name="confirm_password" class="form-control" placeholder="Repeat password" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-success btn-lg w-100 fw-semibold">
+                    <i class="bi bi-person-plus me-2"></i>Create Account
+                </button>
+            </form>
+
+            <hr class="my-4">
+            <p class="text-center text-muted mb-0">
+                Already have an account?
+                <a href="{{ url_for('login') }}" class="fw-semibold text-decoration-none">Sign in</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
