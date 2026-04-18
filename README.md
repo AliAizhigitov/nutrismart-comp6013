@@ -33,8 +33,11 @@ Database and food catalogue auto-initialize on first run.
 
 ---
 
-## Live Demo
-https://aliaizhigitov.pythonanywhere.com
+## Environment Setup
+A `.env` file is included in the repository. Replace `your-anthropic-api-key-here` with an actual API key from https://console.anthropic.com in order for the AI Assistant to work
+
+The live demo at https://aliaizhigitov.pythonanywhere.com is fully configured 
+and requires no setup to use.
 
 ---
 ## File Structure (2,000+ lines of code)
@@ -47,7 +50,7 @@ nutrition_app/
 ├── ai_features.py         - ML recommendation, prediction, anomaly detection
 ├── requirements.txt       - Dependencies
 ├── nutrismart.db          - SQLite database
-├── .env                   - API keys and configuration
+├── .env                   - API key and configuration
 ├── templates/
 │   ├── base.html
 │   ├── dashboard.html
