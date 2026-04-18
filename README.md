@@ -33,6 +33,10 @@ Database and food catalogue auto-initialize on first run.
 
 ---
 
+## Live Demo
+https://aliaizhigitov.pythonanywhere.com
+
+---
 ## File Structure (2,000+ lines of code)
 
 ```
